@@ -9,21 +9,19 @@ import (
 )
 
 func GetCustomer(c echo.Context) error {
-
+	customer := new(model.Customer)
 	id := c.QueryParam("id")
-	customer, err := usecase.GetCustomerById(id)
+	err := usecase.GetCustomerById(customer, id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	customer.FisrtName = "test"
-	customer.LastName = "test"
-	customer.SetFullName()
 
 	return c.JSON(http.StatusOK, customer)
 }
 
 func GetCustomers(c echo.Context) error {
-	customers, err := usecase.GetCustomers()
+	customers := new([]model.Customer)
+	err := usecase.GetCustomers(customers)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -32,12 +30,11 @@ func GetCustomers(c echo.Context) error {
 
 func SaveCustomer(c echo.Context) error {
 	customer := new(model.Customer)
-	// customer := model.Customer{}
-	// var customer model.Customer
-	if err := c.Bind(&customer); err != nil {
+	err := c.Bind(customer)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	err := usecase.Insert(customer)
+	err = usecase.Insert(customer)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -45,20 +42,21 @@ func SaveCustomer(c echo.Context) error {
 }
 
 func UpdateCustomer(c echo.Context) error {
-	customer := model.Customer{}
-	if err := c.Bind(&customer); err != nil {
+	customer := new(model.Customer)
+	err := c.Bind(customer)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	err := usecase.Update(&customer)
-	if err == 0 {
-		return c.String(http.StatusBadRequest, "Not found Customer")
+	err = usecase.Update(customer)
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 	return c.String(http.StatusOK, "Success")
 }
 func DeleteCustomer(c echo.Context) error {
 	err := usecase.Delete(c.Param("id"))
-	if err == 0 {
-		return c.String(http.StatusBadRequest, "Not found Customer")
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 	return c.String(http.StatusOK, "Success")
 }

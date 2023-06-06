@@ -3,36 +3,14 @@ package usecase
 import (
 	"echo_golang/database"
 	"echo_golang/model"
+	"errors"
 	"log"
 )
 
-func GetCustomers() ([]model.Customer, error) {
+func GetCustomers(customers *[]model.Customer) error {
 	db := database.GetDBInstance()
-	customers := []model.Customer{}
-
-	if err := db.Find(&customers).Error; err != nil {
-		print(err)
-		return nil, err
-	}
-
-	return customers, nil
-}
-
-func GetCustomerById(id string) (*model.Customer, error) {
-	db := database.GetDBInstance()
-	var customer model.Customer
-	if err := db.Where("id = ?", id).First(&customer).Error; err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-
-	return &customer, nil
-}
-
-func Insert(customer *model.Customer) error {
-	db := database.GetDBInstance()
-
-	if err := db.Create(&customer).Error; err != nil {
+	err := db.Find(&customers).Error
+	if err != nil {
 		print(err)
 		return err
 	}
@@ -40,18 +18,48 @@ func Insert(customer *model.Customer) error {
 	return nil
 }
 
-func Update(customer *model.Customer) int64 {
+func GetCustomerById(customer *model.Customer, id string) error {
 	db := database.GetDBInstance()
+	err := db.Where("id = ?", id).First(&customer).Error
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
 
-	return db.Model(&customer).Updates(customer).RowsAffected
+	return nil
 }
 
-func Delete(id string) int64 {
+func Insert(customer *model.Customer) error {
+	db := database.GetDBInstance()
+	err := db.Create(&customer).Error
+	if err != nil {
+		print(err)
+		return err
+	}
+
+	return nil
+}
+
+func Update(customer *model.Customer) error {
+	db := database.GetDBInstance()
+	rowAffected := db.Model(&customer).Updates(customer).RowsAffected
+	if rowAffected == 0 {
+		return errors.New("Update Fail")
+	}
+	return nil
+}
+
+func Delete(id string) error {
 	db := database.GetDBInstance()
 	customer := new(model.Customer)
-	if err := db.Where("id = ?", id).First(&customer).Error; err != nil {
+	err := db.Where("id = ?", id).First(&customer).Error
+	if err != nil {
 		print(err)
-		return 0
+		return err
 	}
-	return db.Delete(customer).RowsAffected
+	rowAffected := db.Delete(customer).RowsAffected
+	if rowAffected == 0 {
+		return errors.New("Delete Fail")
+	}
+	return nil
 }
