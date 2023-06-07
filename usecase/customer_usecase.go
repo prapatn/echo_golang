@@ -1,15 +1,14 @@
 package usecase
 
 import (
-	"echo_golang/database"
 	"echo_golang/model"
+	"echo_golang/repository"
 	"errors"
 	"log"
 )
 
 func GetCustomers(customers *[]model.Customer) error {
-	db := database.GetDBInstance()
-	err := db.Find(&customers).Error
+	err := repository.GetAll(customers)
 	if err != nil {
 		print(err)
 		return err
@@ -19,8 +18,7 @@ func GetCustomers(customers *[]model.Customer) error {
 }
 
 func GetCustomerById(customer *model.Customer, id string) error {
-	db := database.GetDBInstance()
-	err := db.Where("id = ?", id).First(&customer).Error
+	err := repository.GetByID(customer, id)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -30,8 +28,7 @@ func GetCustomerById(customer *model.Customer, id string) error {
 }
 
 func Insert(customer *model.Customer) error {
-	db := database.GetDBInstance()
-	err := db.Create(&customer).Error
+	err := repository.Insert(customer)
 	if err != nil {
 		print(err)
 		return err
@@ -41,8 +38,7 @@ func Insert(customer *model.Customer) error {
 }
 
 func Update(customer *model.Customer) error {
-	db := database.GetDBInstance()
-	rowAffected := db.Model(&customer).Updates(customer).RowsAffected
+	rowAffected := repository.Update(customer)
 	if rowAffected == 0 {
 		return errors.New("Update Fail")
 	}
@@ -50,14 +46,8 @@ func Update(customer *model.Customer) error {
 }
 
 func Delete(id string) error {
-	db := database.GetDBInstance()
 	customer := new(model.Customer)
-	err := db.Where("id = ?", id).First(&customer).Error
-	if err != nil {
-		print(err)
-		return err
-	}
-	rowAffected := db.Delete(customer).RowsAffected
+	rowAffected := repository.Delete(customer, id)
 	if rowAffected == 0 {
 		return errors.New("Delete Fail")
 	}
