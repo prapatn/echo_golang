@@ -9,7 +9,7 @@ import (
 )
 
 func GetCustomer(c echo.Context) error {
-	customer := new(model.Customer)
+	customer := new(model.Users)
 	id := c.QueryParam("id")
 	err := usecase.GetCustomerById(customer, id)
 	if err != nil {
@@ -20,7 +20,7 @@ func GetCustomer(c echo.Context) error {
 }
 
 func GetCustomers(c echo.Context) error {
-	customers := new([]model.Customer)
+	customers := new([]model.Users)
 	err := usecase.GetCustomers(customers)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
@@ -29,11 +29,12 @@ func GetCustomers(c echo.Context) error {
 }
 
 func SaveCustomer(c echo.Context) error {
-	customer := new(model.Customer)
+	customer := new(model.Users)
 	err := c.Bind(customer)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
+
 	err = usecase.Insert(customer)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
@@ -42,7 +43,7 @@ func SaveCustomer(c echo.Context) error {
 }
 
 func UpdateCustomer(c echo.Context) error {
-	customer := new(model.Customer)
+	customer := new(model.Users)
 	err := c.Bind(customer)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)

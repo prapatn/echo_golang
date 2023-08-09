@@ -17,22 +17,22 @@ import (
 // 	Delete(customer interface{}, id interface{}) error
 // }
 
-func GetByID(customer *model.Customer, id interface{}) error {
+func GetByID(customer *model.Users, id interface{}) error {
 	return database.DB.Where("id = ?", id).First(customer).Error
 }
 
-func GetAll(customers *[]model.Customer) error {
+func GetAll(customers *[]model.Users) error {
 	return database.DB.Find(customers).Error
 }
 
-func Insert(customer *model.Customer) error {
+func Insert(customer *model.Users) error {
 	return database.DB.Create(customer).Error
 }
 
-func Update(customer *model.Customer) int64 {
+func Update(customer *model.Users) int64 {
 	return database.DB.Model(customer).Updates(customer).RowsAffected
 }
 
-func Delete(customer *model.Customer, id interface{}) int64 {
+func Delete(customer *model.Users, id interface{}) int64 {
 	return database.DB.Where("id = ?", id).Delete(customer).RowsAffected
 }

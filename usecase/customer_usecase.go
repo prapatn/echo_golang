@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func GetCustomers(customers *[]model.Customer) error {
+func GetCustomers(customers *[]model.Users) error {
 	err := repository.GetAll(customers)
 	if err != nil {
 		print(err)
@@ -17,7 +17,7 @@ func GetCustomers(customers *[]model.Customer) error {
 	return nil
 }
 
-func GetCustomerById(customer *model.Customer, id string) error {
+func GetCustomerById(customer *model.Users, id string) error {
 	err := repository.GetByID(customer, id)
 	if err != nil {
 		log.Println(err.Error())
@@ -27,7 +27,7 @@ func GetCustomerById(customer *model.Customer, id string) error {
 	return nil
 }
 
-func Insert(customer *model.Customer) error {
+func Insert(customer *model.Users) error {
 	err := repository.Insert(customer)
 	if err != nil {
 		print(err)
@@ -37,7 +37,7 @@ func Insert(customer *model.Customer) error {
 	return nil
 }
 
-func Update(customer *model.Customer) error {
+func Update(customer *model.Users) error {
 	rowAffected := repository.Update(customer)
 	if rowAffected == 0 {
 		return errors.New("Update Fail")
@@ -46,7 +46,7 @@ func Update(customer *model.Customer) error {
 }
 
 func Delete(id string) error {
-	customer := new(model.Customer)
+	customer := new(model.Users)
 	rowAffected := repository.Delete(customer, id)
 	if rowAffected == 0 {
 		return errors.New("Delete Fail")
