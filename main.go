@@ -3,8 +3,8 @@ package main
 import (
 	"echo_golang/controller"
 	"echo_golang/database"
+	"echo_golang/validate"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -25,8 +25,9 @@ func main() {
 		Output: e.Logger.Output(),
 	}))
 
+	validate := validate.Init()
+
 	var controller controller.Controller
-	validate := validator.New()
 	controller.Validate = validate
 
 	e.POST("/customers", controller.SaveCustomer)

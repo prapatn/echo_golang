@@ -3,11 +3,10 @@ package controller
 import (
 	"echo_golang/model"
 	"echo_golang/usecase"
-	"log"
+	"echo_golang/validate"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/imdario/mergo"
 	"github.com/labstack/echo"
 )
 
@@ -62,19 +61,10 @@ func (controller *Controller) SaveCustomer(c echo.Context) error {
 			Errors:  err.Error(),
 		})
 	}
-	log.Println(customer.Age)
-	log.Println(customer.Id)
 	err = controller.Validate.Struct(customer)
 
 	if err != nil {
-		var errors map[string]interface{}
-		for _, err := range err.(validator.ValidationErrors) {
-			error := map[string]interface{}{
-				err.Field(): err.Tag(),
-			}
-
-			mergo.Merge(&errors, error) //mergo.Merge(&dest,src)
-		}
+		errors := validate.MapErrorValidate(err)
 		return c.JSON(http.StatusBadRequest, model.ResponseError{
 			Code:    http.StatusBadRequest,
 			Message: "Fail",
