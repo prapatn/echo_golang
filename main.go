@@ -4,6 +4,7 @@ import (
 	"echo_golang/controller"
 	"echo_golang/database"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -23,6 +24,11 @@ func main() {
 			"--------------\n",
 		Output: e.Logger.Output(),
 	}))
+
+	var controller controller.Controller
+	validate := validator.New()
+	controller.Validate = validate
+
 	e.POST("/customers", controller.SaveCustomer)
 	e.GET("/customer", controller.GetCustomer)
 	e.GET("/customers", controller.GetCustomers)
