@@ -25,10 +25,7 @@ func main() {
 		Output: e.Logger.Output(),
 	}))
 
-	validate := validate.Init()
-
-	var controller controller.Controller
-	controller.Validate = validate
+	e.Validator = &validate.CustomValidator{Validator: validate.Init()}
 
 	e.POST("/customers", controller.SaveCustomer)
 	e.GET("/customer", controller.GetCustomer)

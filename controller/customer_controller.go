@@ -6,15 +6,10 @@ import (
 	"echo_golang/validate"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo"
 )
 
-type Controller struct {
-	Validate *validator.Validate
-}
-
-func (controller *Controller) GetCustomer(c echo.Context) error {
+func GetCustomer(c echo.Context) error {
 	customer := new(model.Users)
 	id := c.QueryParam("id")
 	err := usecase.GetCustomerById(customer, id)
@@ -33,7 +28,7 @@ func (controller *Controller) GetCustomer(c echo.Context) error {
 	})
 }
 
-func (controller *Controller) GetCustomers(c echo.Context) error {
+func GetCustomers(c echo.Context) error {
 	customers := new([]model.Users)
 	err := usecase.GetCustomers(customers)
 	if err != nil {
@@ -50,7 +45,7 @@ func (controller *Controller) GetCustomers(c echo.Context) error {
 	})
 }
 
-func (controller *Controller) SaveCustomer(c echo.Context) error {
+func SaveCustomer(c echo.Context) error {
 	customer := new(model.Users)
 	err := c.Bind(customer)
 
@@ -58,10 +53,10 @@ func (controller *Controller) SaveCustomer(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, model.ResponseError{
 			Code:    http.StatusBadRequest,
 			Message: "Fail",
-			Errors:  err.Error(),
+			Errors:  validate.MapErrorBind(err),
 		})
 	}
-	err = controller.Validate.Struct(customer)
+	err = c.Validate(customer)
 
 	if err != nil {
 		errors := validate.MapErrorValidate(err)
@@ -79,7 +74,7 @@ func (controller *Controller) SaveCustomer(c echo.Context) error {
 	return c.String(http.StatusCreated, "Success")
 }
 
-func (controller *Controller) UpdateCustomer(c echo.Context) error {
+func UpdateCustomer(c echo.Context) error {
 	customer := new(model.Users)
 	err := c.Bind(customer)
 	if err != nil {
@@ -91,7 +86,7 @@ func (controller *Controller) UpdateCustomer(c echo.Context) error {
 	}
 	return c.String(http.StatusOK, "Success")
 }
-func (controller *Controller) DeleteCustomer(c echo.Context) error {
+func DeleteCustomer(c echo.Context) error {
 	err := usecase.Delete(c.Param("id"))
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
