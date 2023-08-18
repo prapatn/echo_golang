@@ -3,11 +3,12 @@ package validate
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"regexp"
 	"strings"
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/imdario/mergo"
 	"github.com/labstack/echo"
 )
 
@@ -26,20 +27,45 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 func Init() *validator.Validate {
 	validate := validator.New()
 	// Register the custom validator function
-	validate.RegisterValidation("customUsernameValidator", CustomUsernameValidator)
+	validate.RegisterValidation("customZipcodeValidator", CustomZipcodeValidator)
+	validate.RegisterValidation("isValidThai", isValidThai)
+	validate.RegisterValidation("empty", ValidateNotEmptySlice)
 
 	return validate
 }
 
 func MapErrorValidate(err error) *map[string]interface{} {
-	var errors map[string]interface{}
-	for _, err := range err.(validator.ValidationErrors) {
-		error := map[string]interface{}{
-			upperCamelToSnake(err.Field()): CustomErrorMessage(err),
-		}
+	// var errors map[string]interface{}
+	// for _, err := range err.(validator.ValidationErrors) {
+	// 	error := map[string]interface{}{
+	// 		upperCamelToSnake(err.Field()): CustomErrorMessage(err),
+	// 	}
 
-		mergo.Merge(&errors, error) //mergo.Merge(&dest,src)
+	// 	mergo.Merge(&errors, error) //mergo.Merge(&dest,src)
+	// }
+	// return &errors
+
+	errors := make(map[string]interface{})
+	for _, e := range err.(validator.ValidationErrors) {
+		fieldNamespace := e.StructNamespace()
+		// fieldName := upperCamelToSnake(e.Field())
+		// errorMessage := fmt.Sprintf("Validation error on %s with tag %s", fieldName, e.Tag())
+
+		nestedFields := strings.Split(fieldNamespace, ".")[1:]
+		nestedMap := errors
+		for i, nestedField := range nestedFields {
+			nestedField = upperCamelToSnake(nestedField)
+			if i == len(nestedFields)-1 {
+				nestedMap[nestedField] = fmt.Sprintf("Validation error on %s with tag %s", nestedField, e.Tag())
+			} else {
+				if _, exists := nestedMap[nestedField]; !exists {
+					nestedMap[nestedField] = make(map[string]interface{})
+				}
+				nestedMap = nestedMap[nestedField].(map[string]interface{})
+			}
+		}
 	}
+
 	return &errors
 }
 
@@ -68,27 +94,60 @@ func upperCamelToSnake(input string) string {
 	return result.String()
 }
 
-func CustomErrorMessage(e validator.FieldError) string {
-	field := upperCamelToSnake(e.Field())
-	tag := e.Tag()
+// func CustomErrorMessage(e validator.FieldError) string {
+// 	field := upperCamelToSnake(e.Field())
+// 	tag := e.Tag()
+// 	param := upperCamelToSnake(e.Param())
 
-	switch tag {
-	case "required":
-		return fmt.Sprintf("%s is required", field)
-	case "min":
-		return fmt.Sprintf("%s is min %s", field, e.Param())
-	case "max":
-		return fmt.Sprintf("%s is max %s", field, e.Param())
-	case "customUsernameValidator":
-		return fmt.Sprintf("Custom error message for %s", field)
-	case "eqfield":
-		return fmt.Sprintf("%s not eqfield %s", field, e.Param())
-	default:
-		return fmt.Sprintf("Validation error on %s with tag %s", field, tag)
-	}
+// 	switch tag {
+// 	case "required":
+// 		return fmt.Sprintf("%s is required", field)
+// 	case "min":
+// 		return fmt.Sprintf("%s is min %s", field, param)
+// 	case "max":
+// 		return fmt.Sprintf("%s is max %s", field, param)
+// 	case "customUsernameValidator":
+// 		return fmt.Sprintf("Custom error message for %s", field)
+// 	case "eqfield":
+// 		return fmt.Sprintf("%s not eqfield %s", field, param)
+// 	default:
+// 		return fmt.Sprintf("Validation error on %s with tag %s", field, tag)
+// 	}
+// }
+
+func CustomZipcodeValidator(fl validator.FieldLevel) bool {
+	zipcode := fl.Field().String()
+	return len(zipcode) == 5
 }
 
-func CustomUsernameValidator(fl validator.FieldLevel) bool {
-	username := fl.Field().String()
-	return len(username) >= 6
+// check thai
+func isValidThai(fl validator.FieldLevel) bool {
+
+	// text := "สวัสดียินดีต้อนรับ"
+	// re := regexp.MustCompile(`^[ก-๙เ-๎]+$`)
+
+	// if re.MatchString(text) {
+	// 	fmt.Println("พบข้อความที่ประกอบด้วยตัวอักษรไทยเท่านั้น:", text)
+	// } else {
+	// 	fmt.Println("ไม่พบข้อความที่ประกอบด้วยตัวอักษรไทยเท่านั้น")
+	// }
+
+	value := fl.Field().String()
+	var thaiNameRegex = regexp.MustCompile(`^[\p{Thai} ]+$`)
+
+	var thaiNumberRegex = regexp.MustCompile(`[๑-๙]+`)
+	matches := thaiNumberRegex.FindAllString(value, -1)
+
+	return thaiNameRegex.MatchString(value) && (matches == nil)
+}
+
+func ValidateNotEmptySlice(fl validator.FieldLevel) bool {
+	childrenValue := fl.Field()
+
+	// Convert the field's value to an interface{}
+	childrenInterface := reflect.ValueOf(childrenValue.Interface()).Interface()
+
+	// Check the length of the interface (slice)
+	childrenLen := reflect.ValueOf(childrenInterface).Len()
+	return childrenLen > 0
 }

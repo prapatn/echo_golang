@@ -2,19 +2,14 @@ module echo_golang
 
 go 1.20
 
-require (
-	github.com/imdario/mergo v0.3.16
-	gorm.io/driver/mysql v1.5.1
-)
+require gorm.io/driver/mysql v1.5.1
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
-	golang.org/x/time v0.3.0 // indirect
 )
 
 require (
