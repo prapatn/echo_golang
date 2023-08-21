@@ -9,7 +9,7 @@ type Users struct {
 	Password        string      `json:"password" validate:"required"`
 	ConfirmPassword string      `json:"confirm_password" validate:"eqfield=Password"`
 	Address         Address     `json:"address" validate:"required"`
-	Contracts       []*Contract `json:"contracts" validate:"required,empty,dive"`
+	Contracts       []*Contract `json:"contracts" validate:"required,empty,count=2,dive"`
 }
 
 type Address struct {
@@ -20,7 +20,7 @@ type Address struct {
 }
 
 type Contract struct {
-	Type string `json:"type" validate:"required"`
+	Type string `json:"type" validate:"required,customZipcodeValidator"`
 	Text string `json:"text" validate:"required"`
 }
 

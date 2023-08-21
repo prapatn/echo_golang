@@ -3,8 +3,10 @@ package validate
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -30,6 +32,7 @@ func Init() *validator.Validate {
 	validate.RegisterValidation("customZipcodeValidator", CustomZipcodeValidator)
 	validate.RegisterValidation("isValidThai", isValidThai)
 	validate.RegisterValidation("empty", ValidateNotEmptySlice)
+	validate.RegisterValidation("count", ValidateCountSlice)
 
 	return validate
 }
@@ -65,7 +68,7 @@ func MapErrorValidate(err error) *map[string]interface{} {
 			nestedErrors := errors[fields[0]].([]map[string]interface{})
 			nestedError := errors[key].(map[string]interface{})
 			nestedErrors = append(nestedErrors, nestedError)
-
+			log.Println(key)
 			errors[fields[0]] = nestedErrors
 
 			delete(errors, key)
@@ -157,4 +160,16 @@ func ValidateNotEmptySlice(fl validator.FieldLevel) bool {
 	// Check the length of the interface (slice)
 	childrenLen := reflect.ValueOf(childrenInterface).Len()
 	return childrenLen > 0
+}
+
+func ValidateCountSlice(fl validator.FieldLevel) bool {
+	param, _ := strconv.Atoi(fl.Param())
+
+	childrenValue := fl.Field()
+	// Convert the field's value to an interface{}
+	childrenInterface := reflect.ValueOf(childrenValue.Interface()).Interface()
+	// Check the length of the interface (slice)
+	childrenLen := reflect.ValueOf(childrenInterface).Len()
+
+	return param <= childrenLen
 }
