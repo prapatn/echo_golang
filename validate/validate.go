@@ -50,7 +50,6 @@ func MapErrorValidate(err error) *map[string]interface{} {
 		fieldNamespace := e.StructNamespace()
 		// fieldName := upperCamelToSnake(e.Field())
 		// errorMessage := fmt.Sprintf("Validation error on %s with tag %s", fieldName, e.Tag())
-
 		nestedFields := strings.Split(fieldNamespace, ".")[1:]
 		nestedMap := errors
 		for i, nestedField := range nestedFields {
@@ -58,10 +57,34 @@ func MapErrorValidate(err error) *map[string]interface{} {
 			if i == len(nestedFields)-1 {
 				nestedMap[nestedField] = fmt.Sprintf("Validation error on %s with tag %s", nestedField, e.Tag())
 			} else {
-				if _, exists := nestedMap[nestedField]; !exists {
-					nestedMap[nestedField] = make(map[string]interface{})
+				var fields []string
+				if strings.Contains(nestedField, "[") {
+					fields = strings.Split(nestedField, "[")
 				}
-				nestedMap = nestedMap[nestedField].(map[string]interface{})
+
+				if fields != nil {
+					if _, exists := nestedMap[fields[0]]; !exists {
+						nestedMap[fields[0]] = make([]map[string]interface{}, 0)
+					}
+
+					nestedErrors := nestedMap[fields[0]].([]map[string]interface{})
+
+					if _, exists := nestedMap[nestedField]; !exists {
+						nestedMap[nestedField] = make(map[string]interface{})
+					}
+
+					if nestedMap[nestedField] != nil {
+						nestedError := nestedMap[nestedField].(map[string]interface{})
+						nestedErrors = append(nestedErrors, nestedError)
+					}
+
+					nestedMap[fields[0]] = nestedErrors
+				} else {
+					if _, exists := nestedMap[nestedField]; !exists {
+						nestedMap[nestedField] = make(map[string]interface{})
+					}
+					nestedMap = nestedMap[nestedField].(map[string]interface{})
+				}
 			}
 		}
 	}
