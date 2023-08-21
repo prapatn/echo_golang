@@ -35,21 +35,9 @@ func Init() *validator.Validate {
 }
 
 func MapErrorValidate(err error) *map[string]interface{} {
-	// var errors map[string]interface{}
-	// for _, err := range err.(validator.ValidationErrors) {
-	// 	error := map[string]interface{}{
-	// 		upperCamelToSnake(err.Field()): CustomErrorMessage(err),
-	// 	}
-
-	// 	mergo.Merge(&errors, error) //mergo.Merge(&dest,src)
-	// }
-	// return &errors
-
 	errors := make(map[string]interface{})
 	for _, e := range err.(validator.ValidationErrors) {
 		fieldNamespace := e.StructNamespace()
-		// fieldName := upperCamelToSnake(e.Field())
-		// errorMessage := fmt.Sprintf("Validation error on %s with tag %s", fieldName, e.Tag())
 		nestedFields := strings.Split(fieldNamespace, ".")[1:]
 		nestedMap := errors
 		for i, nestedField := range nestedFields {
@@ -57,36 +45,32 @@ func MapErrorValidate(err error) *map[string]interface{} {
 			if i == len(nestedFields)-1 {
 				nestedMap[nestedField] = fmt.Sprintf("Validation error on %s with tag %s", nestedField, e.Tag())
 			} else {
-				var fields []string
-				if strings.Contains(nestedField, "[") {
-					fields = strings.Split(nestedField, "[")
+				if _, exists := nestedMap[nestedField]; !exists {
+					nestedMap[nestedField] = make(map[string]interface{})
 				}
-
-				if fields != nil {
-					if _, exists := nestedMap[fields[0]]; !exists {
-						nestedMap[fields[0]] = make([]map[string]interface{}, 0)
-					}
-
-					nestedErrors := nestedMap[fields[0]].([]map[string]interface{})
-
-					if _, exists := nestedMap[nestedField]; !exists {
-						nestedMap[nestedField] = make(map[string]interface{})
-					}
-
-					if nestedMap[nestedField] != nil {
-						nestedError := nestedMap[nestedField].(map[string]interface{})
-						nestedErrors = append(nestedErrors, nestedError)
-					}
-
-					nestedMap[fields[0]] = nestedErrors
-				} else {
-					if _, exists := nestedMap[nestedField]; !exists {
-						nestedMap[nestedField] = make(map[string]interface{})
-					}
-					nestedMap = nestedMap[nestedField].(map[string]interface{})
-				}
+				nestedMap = nestedMap[nestedField].(map[string]interface{})
 			}
 		}
+	}
+	for key := range errors {
+		var fields []string
+		if strings.Contains(key, "[") {
+			fields = strings.Split(key, "[")
+		}
+
+		if fields != nil {
+			if _, exists := errors[fields[0]]; !exists {
+				errors[fields[0]] = make([]map[string]interface{}, 0)
+			}
+			nestedErrors := errors[fields[0]].([]map[string]interface{})
+			nestedError := errors[key].(map[string]interface{})
+			nestedErrors = append(nestedErrors, nestedError)
+
+			errors[fields[0]] = nestedErrors
+
+			delete(errors, key)
+		}
+
 	}
 
 	return &errors
