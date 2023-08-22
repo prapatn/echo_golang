@@ -50,10 +50,15 @@ func SaveCustomer(c echo.Context) error {
 	err := c.Bind(customer)
 
 	if err != nil {
+		responeErr, ok := validate.MapErrorBind(err)
+		if ok != nil {
+			return c.JSON(http.StatusBadRequest, ok.Error())
+		}
+
 		return c.JSON(http.StatusBadRequest, model.ResponseError{
 			Code:    http.StatusBadRequest,
 			Message: "Fail",
-			Errors:  validate.MapErrorBind(err),
+			Errors:  responeErr,
 		})
 	}
 	err = c.Validate(customer)

@@ -2,6 +2,7 @@ package validate
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -79,18 +80,18 @@ func MapErrorValidate(err error) *map[string]interface{} {
 	return &errors
 }
 
-func MapErrorBind(err error) *map[string]interface{} {
+func MapErrorBind(err error) (*map[string]interface{}, error) {
 	fieldErr := "error"
 	errorMessage := ""
 
 	echoErrs, ok := err.(*echo.HTTPError)
-	if ok {
-		errorMessage = "can't map error to echo.HTTPError"
+	if !ok {
+		return nil, errors.New("can't map error to echo.HTTPError")
 	}
 
 	customErr, ok := echoErrs.Internal.(interface{})
 	if ok {
-		errorMessage = "can't map echo.HTTPError.Internal to interface{}"
+		return nil, errors.New("can't map echo.HTTPError.Internal to interface{}")
 	}
 
 	if customErr != nil {
@@ -105,7 +106,7 @@ func MapErrorBind(err error) *map[string]interface{} {
 		fieldErr: errorMessage,
 	}
 
-	return &error
+	return &error, nil
 }
 
 func upperCamelToSnake(input string) string {
