@@ -80,12 +80,29 @@ func MapErrorValidate(err error) *map[string]interface{} {
 }
 
 func MapErrorBind(err error) *map[string]interface{} {
-	echoErrs, _ := err.(*echo.HTTPError)
-	customErr, _ := echoErrs.Internal.(interface{}).(*json.UnmarshalTypeError)
-	errorMessage := echoErrs.Internal.Error()
+	fieldErr := "error"
+	errorMessage := ""
+
+	echoErrs, ok := err.(*echo.HTTPError)
+	if ok {
+		errorMessage = "can't map error to echo.HTTPError"
+	}
+
+	customErr, ok := echoErrs.Internal.(interface{})
+	if ok {
+		errorMessage = "can't map echo.HTTPError.Internal to interface{}"
+	}
+
+	if customErr != nil {
+		fieldErr = customErr.(*json.UnmarshalTypeError).Field
+		errorMessage = echoErrs.Internal.Error()
+	} else {
+		fieldErr = "body"
+		errorMessage = echoErrs.Message.(string)
+	}
 
 	error := map[string]interface{}{
-		customErr.Field: errorMessage,
+		fieldErr: errorMessage,
 	}
 
 	return &error
