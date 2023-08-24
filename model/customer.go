@@ -1,11 +1,33 @@
 package model
 
 type Users struct {
-	Id     int    `gorm:"primary_key" json:"id"`
-	Name   string `json:"name"`
-	Age    int    `json:"age"`
-	Career string `json:"career"`
-	Active bool   `json:"active"`
+	Id              int         `gorm:"primary_key" json:"id" validate:"numeric"`
+	Name            string      `json:"name" validate:"required,isValidThai"`
+	Age             int         `json:"age" validate:"required,min=1,max=50"`
+	Career          string      `json:"career" validate:"required"`
+	Active          bool        `json:"active" validate:"required"`
+	Password        string      `json:"password" validate:"required"`
+	ConfirmPassword string      `json:"confirm_password" validate:"eqfield=Password"`
+	Address         Address     `json:"address" validate:"required"`
+	Contracts       []*Contract `json:"contracts" validate:"required,empty,count=2,dive"`
+}
+
+type Address struct {
+	Zipcode     string `json:"zipcode" validate:"required,customZipcodeValidator"`
+	Province    string `json:"province" validate:"required"`
+	District    string `json:"district" validate:"required"`
+	SubDistrict string `json:"sub_district" validate:"required"`
+}
+
+type Contract struct {
+	Type string `json:"type" validate:"required,customZipcodeValidator"`
+	Text string `json:"text" validate:"required"`
+}
+
+type DeleteUser struct {
+	UserId   int    `query:"user_id" validate:"required,numeric"`
+	DeleteBy string `query:"delete_by" validate:"required,numeric"`
+	Active   bool   `query:"active" validate:"boolean"`
 }
 
 func FullName(FisrtName, LastName string) string {

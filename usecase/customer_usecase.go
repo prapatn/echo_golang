@@ -45,7 +45,7 @@ func Update(customer *model.Users) error {
 	return nil
 }
 
-func Delete(id string) error {
+func Delete(id int) error {
 	customer := new(model.Users)
 	rowAffected := repository.Delete(customer, id)
 	if rowAffected == 0 {

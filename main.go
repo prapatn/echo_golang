@@ -3,6 +3,7 @@ package main
 import (
 	"echo_golang/controller"
 	"echo_golang/database"
+	"echo_golang/validate"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -23,11 +24,14 @@ func main() {
 			"--------------\n",
 		Output: e.Logger.Output(),
 	}))
+
+	e.Validator = &validate.CustomValidator{Validator: validate.Init()}
+
 	e.POST("/customers", controller.SaveCustomer)
 	e.GET("/customer", controller.GetCustomer)
 	e.GET("/customers", controller.GetCustomers)
 	e.PUT("/customers", controller.UpdateCustomer)
-	e.DELETE("/customers/:id", controller.DeleteCustomer)
+	e.DELETE("/customers", controller.DeleteCustomer)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
