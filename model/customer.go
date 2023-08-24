@@ -24,6 +24,12 @@ type Contract struct {
 	Text string `json:"text" validate:"required"`
 }
 
+type DeleteUser struct {
+	UserId   int    `query:"user_id" validate:"required,numeric"`
+	DeleteBy string `query:"delete_by" validate:"required,numeric"`
+	Active   bool   `query:"active" validate:"boolean"`
+}
+
 func FullName(FisrtName, LastName string) string {
 	return FisrtName + " " + LastName
 }

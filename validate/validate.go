@@ -89,13 +89,18 @@ func MapErrorBind(err error) (*map[string]interface{}, error) {
 		return nil, errors.New("can't map error to echo.HTTPError")
 	}
 
-	customErr, ok := echoErrs.Internal.(interface{})
-	if ok {
-		return nil, errors.New("can't map echo.HTTPError.Internal to interface{}")
-	}
+	customErr := echoErrs.Internal
 
 	if customErr != nil {
-		fieldErr = customErr.(*json.UnmarshalTypeError).Field
+		switch customErr.(type) {
+		case *strconv.NumError:
+			fieldErr = "query_params"
+		case *json.UnmarshalTypeError:
+			fieldErr = customErr.(*json.UnmarshalTypeError).Field
+		default:
+
+		}
+
 		errorMessage = echoErrs.Internal.Error()
 	} else {
 		fieldErr = "body"

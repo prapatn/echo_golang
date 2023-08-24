@@ -4,6 +4,7 @@ import (
 	"echo_golang/model"
 	"echo_golang/usecase"
 	"echo_golang/validate"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -92,7 +93,33 @@ func UpdateCustomer(c echo.Context) error {
 	return c.String(http.StatusOK, "Success")
 }
 func DeleteCustomer(c echo.Context) error {
-	err := usecase.Delete(c.Param("id"))
+	customer := new(model.DeleteUser)
+	err := c.Bind(customer)
+	if err != nil {
+		responeErr, ok := validate.MapErrorBind(err)
+		if ok != nil {
+			return c.JSON(http.StatusBadRequest, ok.Error())
+		}
+
+		return c.JSON(http.StatusBadRequest, model.ResponseError{
+			Code:    http.StatusBadRequest,
+			Message: "Fail",
+			Errors:  responeErr,
+		})
+	}
+	log.Println(customer.Active)
+	err = c.Validate(customer)
+	log.Println(err)
+	if err != nil {
+		errors := validate.MapErrorValidate(err)
+		return c.JSON(http.StatusBadRequest, model.ResponseError{
+			Code:    http.StatusBadRequest,
+			Message: "Fail",
+			Errors:  errors,
+		})
+	}
+
+	err = usecase.Delete(customer.UserId)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
